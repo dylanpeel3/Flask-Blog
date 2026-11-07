@@ -4,7 +4,7 @@ from flask import Flask, render_template, request, url_for, flash, redirect, abo
 # make a Flask application object called app
 app = Flask(__name__)
 app.config["DEBUG"] = True
-app.config{'SECRET_KEY'} = 'your secret key'
+app.config['SECRET_KEY'] = 'your secret key'
 
 
 # Function to open a connection to the database.db file
@@ -19,12 +19,22 @@ def get_db_connection():
     #return the connection object
     return conn
 
+#Function to retrieve a post from the database
+def get_post(id):
+    conn = get_db_connection()
+    post = conn.execute('SELECT * FROM posts WHERE id = ?', (post_id,)).fetchone()
+    conn.close()
+
+    if post is None:
+        abort(404)
+
+    return post
 
 # use the app.route() decorator to create a Flask view function called index()
 @app.route('/')
 def index():
     #get a connection to the database
-    conn = get_db_connection
+    conn = get_db_connection()
 
     #execute a query to read all posts from the posts table in the database
     posts = conn.execute('SELECT * FROM posts').fetchall()
@@ -36,7 +46,7 @@ def index():
     return render_template('index.html', posts=posts)
 
 # route to create a post
-@app.route('/create/', methods=('GET, POST'))
+@app.route('/create/', methods=('GET', 'POST'))
 def create():
     #determine if the page is being requested with a POST or GET request
     if request.method == 'POST':
@@ -60,5 +70,16 @@ def create():
             return redirect(url_for('index'))
 
     return render_template('create.html')
+
+#create a route to edit a post. Load page with get or post method
+#pass the post id as url parameter
+@app.route('/<int:id>/edit/', methods=('GET', 'POST'))
+def edit(id):
+    #get the post from the database with a select query for the post with that id
+    post = get_post(id)
+    #determine if the page was requested with the GET or POST
+    #If GET then display page
+    #If POST, process the form data. Get the data and validate it. Update the post and redirect to the homepage
+    pass
 
 app.run(port=5008)
