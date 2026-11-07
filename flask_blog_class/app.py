@@ -19,11 +19,12 @@ def get_db_connection():
     #return the connection object
     return conn
 
-#Function to retrieve a post from the database
+# Function to retrieve a post from the database
 def get_post(id):
     conn = get_db_connection()
-    post = conn.execute('SELECT * FROM posts WHERE id = ?', (post_id,)).fetchone()
+    post = conn.execute('SELECT * FROM posts WHERE id = ?', (id,)).fetchone()
     conn.close()
+    return post
 
     if post is None:
         abort(404)
@@ -91,7 +92,7 @@ def edit(id):
             flash('Content is required')
         else:
             conn = get_db_connection
-            conn.execute('UPDATE posts SET title = ?', content = ? WHERE id = ?, (title, content, id))
+            conn.execute('UPDATE posts SET title = ?, content = ? WHERE id = ?', (title, content, id))
             conn.commit()
             conn.close()
 
@@ -100,6 +101,29 @@ def edit(id):
 
     #If GET then display page
     return render_template('edit.html', post=post)   
-    
+
+#create a route to delete a post
+#Delete route will only be processed witha POST method
+#the post id is the url parameter
+@app.route('/<int:id>/delete', methods=('POST',))
+def delete(id):
+    #get the post
+    post = get_post(id)
+
+    #Connect to the database
+    conn = get_db_connection()
+
+    #execute a delete query
+    conn.execute('DELETE FROM posts WHERE id = ?', (id,))
+
+    #commit and close the connection
+    conn.commit()
+    conn.close()
+
+    #flash a success message
+    flash('"{}" was successfully deleted!'.format(post['title']))
+          
+    #redirect to the homepage
+    return redirect(url_for('index'))
 
 app.run(port=5008)
